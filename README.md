@@ -1,0 +1,29 @@
+# YTMusic Widgets
+
+A real-time YouTube Music status widget for your GitHub Profile. 
+
+![Status](https://ytmusic-widgets.vercel.app/widgets/815668704435896321&theme=elite)
+
+## Features
+
+- **Real-time**: Song data updates instantly via Lanyard.
+- **Stylish Themes**: Multiple themes to fit your profile aesthetic.
+
+## Usage
+
+Copy-paste this into your README:
+
+```markdown
+![YouTube Music](https://ytmusic-widgets.vercel.app/widgets/YOUR_DISCORD_ID&theme=elite)
+```
+
+### Options
+- `id`: Your Discord User ID (Required).
+- `theme`: `classic` or `elite` (Default: `classic`).
+
+
+> [!NOTE]
+> Make sure you are in the [Lanyard Discord](https://discord.gg/lanyard) or have authorized the Lanyard app for this to work.
+
+---
+Built with ❤️ by [Erslly](https://github.com/erslly)
