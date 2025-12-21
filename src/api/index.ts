@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { LanyardResponse } from '../types';
+import { PresenceResponse } from '../types';
 
-export const getLanyardStatus = async (userId: string): Promise<LanyardResponse> => {
-    const { data } = await axios.get(`https://api.lanyard.rest/v1/users/${userId}`);
+export const getPresenceStatus = async (userId: string): Promise<PresenceResponse> => {
+    const { data } = await axios.get(`https://api.erslly.dev/api/presence/${userId}`);
     return data;
 };
 
-export const getYTMusicActivity = (response: LanyardResponse) => {
-    const activities = response.data.activities;
+export const getYTMusicActivity = (response: PresenceResponse) => {
+    const activities = response.data.presence.activities;
     return activities.find(
-        (a) => a.name === 'YouTube Music' || a.application_id === '1231711920231546962'
+        (a) => a.name === 'YouTube Music' || a.application_id === '1452296227810054305' || a.application_id === '463151177836658699'
     );
 };

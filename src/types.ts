@@ -1,15 +1,23 @@
-export interface LanyardResponse {
-    data: {
-        activities: LanyardActivity[];
-    };
+export interface PresenceResponse {
     success: boolean;
+    data: {
+        user: {
+            id: string;
+            username: string;
+            global_name: string;
+            avatar_url: string;
+        };
+        presence: {
+            status: string;
+            activities: PresenceActivity[];
+        };
+    };
 }
 
-export interface LanyardActivity {
+export interface PresenceActivity {
     type: number;
     state: string;
     name: string;
-    id: string;
     details: string;
     timestamps?: {
         start: number;
@@ -18,6 +26,7 @@ export interface LanyardActivity {
     assets?: {
         large_image: string;
         large_text: string;
+        large_url?: string;
     };
     application_id?: string;
 }

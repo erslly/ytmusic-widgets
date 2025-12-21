@@ -6,7 +6,7 @@ A real-time YouTube Music status widget for your GitHub Profile.
 
 ## Features
 
-- **Real-time**: Song data updates instantly via Lanyard.
+- **Real-time**: Song data updates instantly via Custom Presence API.
 - **Stylish Themes**: Multiple themes to fit your profile aesthetic.
 
 ## Usage
@@ -23,7 +23,7 @@ Copy-paste this into your README:
 
 
 > [!NOTE]
-> Make sure you are in the [Lanyard Discord](https://discord.gg/lanyard) or have authorized the Lanyard app for this to work.
+> Make sure you are in the [Discord](https://discord.gg/kBwAjuwuds) for this to work.
 
 ## Credits
 

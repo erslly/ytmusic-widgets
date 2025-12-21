@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import axios from 'axios';
-import { getLanyardStatus, getYTMusicActivity } from './api';
+import { getPresenceStatus, getYTMusicActivity } from './api';
 import { renderSVG } from './svg/renderer';
 
 const app = express();
@@ -44,7 +44,7 @@ app.get('/widgets/:id?', async (req, res) => {
     if (!id) return res.status(400).send('Discord User ID is required');
 
     try {
-        const status = await getLanyardStatus(id as string);
+        const status = await getPresenceStatus(id as string);
         const activity = getYTMusicActivity(status);
 
         res.setHeader('Content-Type', 'image/svg+xml');
@@ -70,11 +70,11 @@ app.get('/widgets/:id?', async (req, res) => {
         const total = (start && end) ? end - start : 0;
         const progress = total ? Math.min(100, Math.max(0, (elapsed / total) * 100)) : 0;
 
-        let albumArt = activity.assets?.large_image?.startsWith('mp:external')
+        let albumArt = activity.assets?.large_url || (activity.assets?.large_image?.startsWith('mp:external')
             ? `https://media.discordapp.net/external/${activity.assets.large_image.split('external/')[1]}`
             : (activity.assets?.large_image
                 ? `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`
-                : 'https://cdn.discordapp.com/emojis/847043868216524811.png');
+                : 'https://cdn.discordapp.com/emojis/847043868216524811.png'));
 
         albumArt = await getBase64Image(albumArt);
 
