@@ -19,11 +19,15 @@ Copy-paste this into your README:
 
 ### Options
 - `id`: Your Discord User ID (Required).
-- `theme`: `classic` or `elite` (Default: `classic`).
+- `theme`: `classic`, `elite`, or `glass` (Default: `classic`).
 
 
 > [!NOTE]
 > Make sure you are in the [Lanyard Discord](https://discord.gg/lanyard) or have authorized the Lanyard app for this to work.
+
+## Credits
+
+Special thanks to [luluwux/Spotify-Github-Profile](https://github.com/luluwux/Spotify-Github-Profile) for inspiring the **Classic** and **Elite** theme designs.
 
 ---
 Built with ❤️ by [Erslly](https://github.com/erslly)
