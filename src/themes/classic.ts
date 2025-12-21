@@ -34,31 +34,56 @@ export const classicTheme = (data: {
 
     return `
     <svg width="520" height="180" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+            <linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#FF0000;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8B0000;stop-opacity:1" />
+            </linearGradient>
+            <filter id="inner-shadow">
+                <feOffset dx="0" dy="2"/>
+                <feGaussianBlur stdDeviation="3" result="offset-blur"/>
+                <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/>
+                <feFlood flood-color="black" flood-opacity="0.5" result="color"/>
+                <feComposite operator="in" in="color" in2="inverse" result="shadow"/>
+                <feComposite operator="over" in="shadow" in2="SourceGraphic"/>
+            </filter>
+            <clipPath id="rounded-image">
+                <rect x="30" y="30" width="120" height="120" rx="15"/>
+            </clipPath>
+        </defs> 
         <style>
             .song, .artist { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; }
-            .song { font-size: 24px; font-weight: 600; fill: #fff; }
-            .artist { font-size: 16px; fill: #D3D3D3; }
-            .time { font-size: 12px; fill: #D3D3D3; }
+            .song { font-size: 24px; font-weight: 800; fill: #fff; letter-spacing: -0.5px; }
+            .artist { font-size: 18px; fill: #b3b3b3; font-weight: 500; }
+            .time { font-size: 13px; fill: #a0a0a0; font-weight: 500; }
+            .card-bg { fill: #0f0f0f; stroke: url(#border-gradient); stroke-width: 3; }
+            .progress-bg { fill: rgba(255, 255, 255, 0.1); }
+            .progress-fg { fill: url(#classic-progress-gradient); }
+            .progress-knob { fill: #FF0000; filter: drop-shadow(0 0 5px rgba(255,0,0,0.6)); }
         </style>
-        <rect x="10" y="10" width="500" height="160" rx="20" fill="#121212" stroke="#FF0000" stroke-width="4"/>
+
+        <rect x="10" y="10" width="500" height="160" rx="25" class="card-bg" filter="url(#inner-shadow)"/>
+        <g>
+            <image x="30" y="30" width="120" height="120" xlink:href="${data.albumArt}" href="${data.albumArt}" clip-path="url(#rounded-image)"/>
+            <rect x="110" y="110" width="40" height="40" rx="20" fill="#0f0f0f"/>
+            ${YTMusicLogo(115, 115)}
+        </g>
 
         <defs>
-            <clipPath id="rounded-image">
-                <rect x="30" y="30" width="120" height="120" rx="10"/>
-            </clipPath>
+            <linearGradient id="classic-progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#FF0000;stop-opacity:0.8" />
+                <stop offset="100%" style="stop-color:#FF0000;stop-opacity:1" />
+            </linearGradient>
         </defs>
 
-        <image x="30" y="30" width="120" height="120" xlink:href="${data.albumArt}" href="${data.albumArt}" clip-path="url(#rounded-image)"/>
+        <text x="170" y="65" class="song">${data.track.length > 25 ? data.track.slice(0, 23) + '...' : data.track}</text>
+        <text x="170" y="95" class="artist">${data.artist}</text>
 
-        ${YTMusicLogo(460, 35)}
+        <text x="170" y="145" class="time">${data.startTime || '0:00'}</text>
+        <text x="480" y="145" class="time" text-anchor="end">${data.endTime || '0:00'}</text>
 
-        <text x="170" y="60" class="song">${data.track.length > 20 ? data.track.slice(0, 18) + '...' : data.track}</text>
-        <text x="170" y="85" class="artist">${data.artist}</text>
-
-        <text x="170" y="135" class="time">${data.startTime || '0:00'}</text>
-        <text x="480" y="135" class="time" text-anchor="end">${data.endTime || '0:00'}</text>
-
-        <rect x="220" y="130" width="205" height="4" fill="#6a625e" rx="3"/>
-        <rect x="220" y="130" width="${progressBarWidth}" height="4" fill="#fff" rx="3"/>
+        <rect x="220" y="140" width="205" height="4" class="progress-bg" rx="2"/>
+        <rect x="220" y="140" width="${progressBarWidth}" height="4" class="progress-fg" rx="2"/>
+        <circle cx="${220 + progressBarWidth}" cy="142" r="4.5" class="progress-knob"/>
     </svg>`;
 };
