@@ -65,8 +65,8 @@ export const classicTheme = (data: {
         <rect x="10" y="10" width="500" height="160" rx="25" class="card-bg" filter="url(#inner-shadow)"/>
         <g>
             <image x="30" y="30" width="120" height="120" xlink:href="${data.albumArt}" href="${data.albumArt}" clip-path="url(#rounded-image)"/>
-            <rect x="110" y="110" width="40" height="40" rx="20" fill="#0f0f0f"/>
-            ${YTMusicLogo(115, 115)}
+            <rect x="115" y="115" width="35" height="35" rx="17.5" fill="#0f0f0f"/>
+            ${YTMusicLogo(117.5, 117.5)}
         </g>
 
         <defs>
