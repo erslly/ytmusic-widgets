@@ -2,7 +2,7 @@
 
 A real-time YouTube Music status widget for your GitHub Profile. 
 
-![Status](https://ytmusic-widgets.vercel.app/widgets/815668704435896321&theme=elite)
+![Status](https://widgets.erslly.dev/widgets/815668704435896321&theme=elite)
 
 ## Features
 
@@ -14,7 +14,7 @@ A real-time YouTube Music status widget for your GitHub Profile.
 Copy-paste this into your README:
 
 ```markdown
-![YouTube Music](https://ytmusic-widgets.vercel.app/widgets/YOUR_DISCORD_ID&theme=elite)
+![YouTube Music](https://widgets.erslly.dev/widgets/YOUR_DISCORD_ID&theme=elite)
 ```
 
 ### Options
