@@ -18,7 +18,7 @@ export const glassTheme = (data: {
 }) => {
     const isOffline = data.status === 'OFFLINE';
     const progress = data.progress || 0;
-    const progressBarWidth = 350 * (progress / 100);
+    const progressBarWidth = 295 * (progress / 100);
 
     if (isOffline) {
         return `
@@ -62,20 +62,21 @@ export const glassTheme = (data: {
             <rect x="15" y="15" width="570" height="130" rx="25" class="glass-panel"/>
 
             <g class="content">
-                <image href="${data.albumArt}" x="40" y="35" width="90" height="90" rx="20" clip-path="inset(0% round 20px)"/>
-                <g transform="translate(115, 115)">
-                    ${YTMusicLogo(0, 0)}
+                <g>
+                    <image href="${data.albumArt}" x="40" y="35" width="90" height="90" rx="20" clip-path="inset(0% round 20px)"/>
+                        <rect x="105" y="100" width="30" height="30" rx="15" fill="rgba(0,0,0,0.5)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                    ${YTMusicLogo(108, 103)}
                 </g>
 
                 <text x="150" y="65" class="track">${data.track.length > 30 ? data.track.slice(0, 28) + '...' : data.track}</text>
                 <text x="150" y="92" class="artist">${data.artist}</text>
 
-                <text x="150" y="125" class="time">${data.startTime || '0:00'}</text>
-                <text x="540" y="125" class="time" text-anchor="end">${data.endTime || '0:00'}</text>
+                <text x="145" y="125" class="time">${data.startTime || '0:00'}</text>
+                <text x="555" y="125" class="time" text-anchor="end">${data.endTime || '0:00'}</text>
 
-                <rect x="195" y="121" width="335" height="2.5" class="progress-bg" rx="1.25"/>
-                <rect x="195" y="121" width="${335 * (progress / 100)}" height="2.5" class="progress-fg" rx="1.25"/>
-                <circle cx="${195 + 335 * (progress / 100)}" cy="122.25" r="3.5" fill="#fff"/>
+                <rect x="200" y="121" width="295" height="2.5" class="progress-bg" rx="1.25"/>
+                <rect x="200" y="121" width="${progressBarWidth}" height="2.5" class="progress-fg" rx="1.25"/>
+                <circle cx="${200 + progressBarWidth}" cy="122.25" r="3.5" fill="#fff"/>
             </g>
         </g>
     </svg>`;
