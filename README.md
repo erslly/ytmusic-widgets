@@ -1,3 +1,5 @@
+[Türkçe](README.tr.md)
+
 # YTMusic Widgets
 
 A real-time YouTube Music status widget for your GitHub Profile. 

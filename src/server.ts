@@ -4,6 +4,9 @@ import cors from 'cors';
 import axios from 'axios';
 import { getPresenceStatus, getYTMusicActivity } from './api';
 import { renderSVG } from './svg/renderer';
+import { renderErrorSVG } from './svg/error-svg';
+import { validateUserId, validateTheme, sanitizeInput } from './utils/validation';
+import { APIError, ErrorType } from './types';
 
 const app = express();
 app.use(cors({ origin: '*' }));
@@ -13,38 +16,77 @@ app.disable('x-powered-by');
 app.set('etag', false);
 const PORT = process.env.PORT || 3000;
 
+const REQUEST_TIMEOUT = 10000;
+
 const formatTime = (ms: number) => {
     const s = Math.floor(ms / 1000);
     return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 };
 
-const getBase64Image = async (url: string) => {
+const getBase64Image = async (url: string): Promise<string> => {
     try {
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        const response = await axios.get(url, {
+            responseType: 'arraybuffer',
+            timeout: 3000
+        });
         const buffer = Buffer.from(response.data, 'binary');
         const contentType = response.headers['content-type'] as string;
         return `data:${contentType};base64,${buffer.toString('base64')}`;
     } catch (e) {
-        return url;
+        return 'https://cdn.discordapp.com/emojis/847043868216524811.png';
     }
 };
 
 app.get('/widgets/:id?', async (req, res) => {
-    let { id } = req.params;
-    let theme = (req.query.theme as string) || 'classic';
-    if (!id && req.query.id) {
-        id = req.query.id as string;
-    }
-    if (id && id.includes('&theme=')) {
-        const parts = id.split('&theme=');
-        id = parts[0];
-        theme = parts[1];
-    }
+    const startTime = Date.now();
 
-    if (!id) return res.status(400).send('Discord User ID is required');
+    const timeoutId = setTimeout(() => {
+        if (!res.headersSent) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+            res.status(504).send(renderErrorSVG('classic', {
+                type: ErrorType.TIMEOUT,
+                message: 'Request timeout'
+            }));
+        }
+    }, REQUEST_TIMEOUT);
 
     try {
-        const status = await getPresenceStatus(id as string);
+        let { id } = req.params;
+        let theme = (req.query.theme as string) || 'classic';
+        const clientIp = req.ip || req.socket.remoteAddress;
+        if (!id && req.query.id) {
+            id = req.query.id as string;
+        }
+        if (id && id.includes('&theme=')) {
+            const parts = id.split('&theme=');
+            id = parts[0];
+            theme = parts[1];
+        }
+        id = sanitizeInput(id || '');
+        theme = sanitizeInput(theme);
+        if (!id) {
+            clearTimeout(timeoutId);
+            res.setHeader('Content-Type', 'image/svg+xml');
+            return res.status(400).send(renderErrorSVG(theme, {
+                type: ErrorType.INVALID_USER_ID,
+                message: 'User ID is required'
+            }));
+        }
+
+        if (!validateUserId(id)) {
+            clearTimeout(timeoutId);
+            res.setHeader('Content-Type', 'image/svg+xml');
+            return res.status(400).send(renderErrorSVG(theme, {
+                type: ErrorType.INVALID_USER_ID,
+                message: 'Invalid user ID format'
+            }));
+        }
+
+        if (!validateTheme(theme)) {
+            theme = 'classic';
+        }
+
+        const status = await getPresenceStatus(id);
         const activity = getYTMusicActivity(status);
 
         res.setHeader('Content-Type', 'image/svg+xml');
@@ -56,12 +98,13 @@ app.get('/widgets/:id?', async (req, res) => {
         res.setHeader('Connection', 'close');
 
         if (!activity) {
-            const svgContent = renderSVG(theme as string, {
+            const svgContent = renderSVG(theme, {
                 track: 'Not Listening',
                 artist: 'YouTube Music',
                 albumArt: 'https://cdn.discordapp.com/emojis/847043868216524811.png',
                 status: 'OFFLINE'
             });
+            clearTimeout(timeoutId);
             return res.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
         }
 
@@ -78,7 +121,7 @@ app.get('/widgets/:id?', async (req, res) => {
 
         albumArt = await getBase64Image(albumArt);
 
-        const svgContent = renderSVG(theme as string, {
+        const svgContent = renderSVG(theme, {
             track: activity.details || 'Unknown Track',
             artist: activity.state || 'Unknown Artist',
             albumArt,
@@ -90,9 +133,30 @@ app.get('/widgets/:id?', async (req, res) => {
         // Add a hidden timestamp inside SVG to bypass persistent caching
         return res.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Error fetching data');
+        clearTimeout(timeoutId);
+
+        if (error instanceof APIError) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+            return res.status(error.statusCode || 500).send(renderErrorSVG(
+                (req.query.theme as string) || 'classic',
+                {
+                    type: error.type,
+                    message: error.message,
+                    details: error.details
+                }
+            ));
+        }
+        res.setHeader('Content-Type', 'image/svg+xml');
+        res.status(500).send(renderErrorSVG(
+            (req.query.theme as string) || 'classic',
+            {
+                type: ErrorType.GENERIC_ERROR,
+                message: 'An unexpected error occurred'
+            }
+        ));
     }
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
