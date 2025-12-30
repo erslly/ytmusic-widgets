@@ -1,111 +1,79 @@
-import express from 'express';
-import helmet from 'helmet';
-import cors from 'cors';
-import axios from 'axios';
+import Fastify from 'fastify';
+import fastifyHelmet from '@fastify/helmet';
+import fastifyCors from '@fastify/cors';
 import { getPresenceStatus, getYTMusicActivity } from './api';
 import { renderSVG } from './svg/renderer';
 import { renderErrorSVG } from './svg/error-svg';
 import { validateUserId, validateTheme, sanitizeInput } from './utils/validation';
 import { APIError, ErrorType } from './types';
+import { CONFIG } from './config';
+import { getBase64Image } from './utils/image';
+import { formatTime } from './utils/format';
 
-const app = express();
-app.use(cors({ origin: '*' }));
-app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(express.json());
-app.disable('x-powered-by');
-app.set('etag', false);
-const PORT = process.env.PORT || 3000;
+const fastify = Fastify({
+    logger: true,
+    disableRequestLogging: true
+});
 
-const REQUEST_TIMEOUT = 10000;
+fastify.register(fastifyCors, { origin: '*' });
+fastify.register(fastifyHelmet, { crossOriginResourcePolicy: false });
 
-const formatTime = (ms: number) => {
-    const s = Math.floor(ms / 1000);
-    return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-};
+fastify.get('/widgets/:id?', async (request, reply) => {
+    let { id } = request.params as { id?: string };
+    const query = request.query as any;
+    let theme = query.theme || 'classic';
 
-const getBase64Image = async (url: string): Promise<string> => {
-    try {
-        const response = await axios.get(url, {
-            responseType: 'arraybuffer',
-            timeout: 3000
-        });
-        const buffer = Buffer.from(response.data, 'binary');
-        const contentType = response.headers['content-type'] as string;
-        return `data:${contentType};base64,${buffer.toString('base64')}`;
-    } catch (e) {
-        return 'https://cdn.discordapp.com/emojis/847043868216524811.png';
+    if (!id && query.id) {
+        id = query.id;
     }
-};
 
-app.get('/widgets/:id?', async (req, res) => {
-    const startTime = Date.now();
+    if (id && id.includes('&theme=')) {
+        const parts = id.split('&theme=');
+        id = parts[0];
+        theme = parts[1];
+    }
 
-    const timeoutId = setTimeout(() => {
-        if (!res.headersSent) {
-            res.setHeader('Content-Type', 'image/svg+xml');
-            res.status(504).send(renderErrorSVG('classic', {
-                type: ErrorType.TIMEOUT,
-                message: 'Request timeout'
-            }));
-        }
-    }, REQUEST_TIMEOUT);
+    id = sanitizeInput(id || '');
+    theme = sanitizeInput(theme);
+
+    reply.header('Content-Type', 'image/svg+xml');
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0');
+    reply.header('Content-Security-Policy', "default-src 'none'; img-src * data:; style-src 'unsafe-inline'");
+    reply.header('Pragma', 'no-cache');
+    reply.header('Expires', '0');
+    reply.header('Surrogate-Control', 'no-store');
+    reply.header('Connection', 'close');
+
+    if (!id) {
+        return reply.status(400).send(renderErrorSVG(theme, {
+            type: ErrorType.INVALID_USER_ID,
+            message: 'User ID is required'
+        }));
+    }
+
+    if (!validateUserId(id)) {
+        return reply.status(400).send(renderErrorSVG(theme, {
+            type: ErrorType.INVALID_USER_ID,
+            message: 'Invalid user ID format'
+        }));
+    }
+
+    if (!validateTheme(theme)) {
+        theme = 'classic';
+    }
 
     try {
-        let { id } = req.params;
-        let theme = (req.query.theme as string) || 'classic';
-        const clientIp = req.ip || req.socket.remoteAddress;
-        if (!id && req.query.id) {
-            id = req.query.id as string;
-        }
-        if (id && id.includes('&theme=')) {
-            const parts = id.split('&theme=');
-            id = parts[0];
-            theme = parts[1];
-        }
-        id = sanitizeInput(id || '');
-        theme = sanitizeInput(theme);
-        if (!id) {
-            clearTimeout(timeoutId);
-            res.setHeader('Content-Type', 'image/svg+xml');
-            return res.status(400).send(renderErrorSVG(theme, {
-                type: ErrorType.INVALID_USER_ID,
-                message: 'User ID is required'
-            }));
-        }
-
-        if (!validateUserId(id)) {
-            clearTimeout(timeoutId);
-            res.setHeader('Content-Type', 'image/svg+xml');
-            return res.status(400).send(renderErrorSVG(theme, {
-                type: ErrorType.INVALID_USER_ID,
-                message: 'Invalid user ID format'
-            }));
-        }
-
-        if (!validateTheme(theme)) {
-            theme = 'classic';
-        }
-
         const status = await getPresenceStatus(id);
         const activity = getYTMusicActivity(status);
-
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0');
-        res.setHeader('Content-Security-Policy', "default-src 'none'; img-src * data:; style-src 'unsafe-inline'");
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('Surrogate-Control', 'no-store');
-        res.setHeader('Connection', 'close');
 
         if (!activity) {
             const svgContent = renderSVG(theme, {
                 track: 'Not Listening',
                 artist: 'YouTube Music',
-                albumArt: 'https://cdn.discordapp.com/emojis/847043868216524811.png',
+                albumArt: CONFIG.DEFAULT_ALBUM_ART,
                 status: 'OFFLINE'
             });
-            clearTimeout(timeoutId);
-            return res.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
+            return reply.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
         }
 
         const { start, end } = activity.timestamps || {};
@@ -117,7 +85,7 @@ app.get('/widgets/:id?', async (req, res) => {
             ? `https://media.discordapp.net/external/${activity.assets.large_image.split('external/')[1]}`
             : (activity.assets?.large_image
                 ? `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`
-                : 'https://cdn.discordapp.com/emojis/847043868216524811.png'));
+                : CONFIG.DEFAULT_ALBUM_ART));
 
         albumArt = await getBase64Image(albumArt);
 
@@ -130,15 +98,12 @@ app.get('/widgets/:id?', async (req, res) => {
             startTime: formatTime(elapsed),
             endTime: formatTime(total)
         });
-        // Add a hidden timestamp inside SVG to bypass persistent caching
-        return res.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
-    } catch (error) {
-        clearTimeout(timeoutId);
 
+        return reply.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));
+    } catch (error) {
         if (error instanceof APIError) {
-            res.setHeader('Content-Type', 'image/svg+xml');
-            return res.status(error.statusCode || 500).send(renderErrorSVG(
-                (req.query.theme as string) || 'classic',
+            return reply.status(error.statusCode || 500).send(renderErrorSVG(
+                theme,
                 {
                     type: error.type,
                     message: error.message,
@@ -146,9 +111,8 @@ app.get('/widgets/:id?', async (req, res) => {
                 }
             ));
         }
-        res.setHeader('Content-Type', 'image/svg+xml');
-        res.status(500).send(renderErrorSVG(
-            (req.query.theme as string) || 'classic',
+        return reply.status(500).send(renderErrorSVG(
+            theme,
             {
                 type: ErrorType.GENERIC_ERROR,
                 message: 'An unexpected error occurred'
@@ -157,6 +121,14 @@ app.get('/widgets/:id?', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+const start = async () => {
+    try {
+        await fastify.listen({ port: CONFIG.PORT, host: '0.0.0.0' });
+        console.log(`Server running on http://localhost:${CONFIG.PORT}`);
+    } catch (err) {
+        fastify.log.error(err);
+        process.exit(1);
+    }
+};
+
+start();
