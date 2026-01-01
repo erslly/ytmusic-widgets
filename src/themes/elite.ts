@@ -7,18 +7,15 @@ const YTMusicLogo = (x: number, y: number) => `
     </g>
 </svg>`;
 
-export const eliteTheme = (data: {
-    track: string;
-    artist: string;
-    albumArt: string;
-    status: string;
-    progress?: number;
-    startTime?: string;
-    endTime?: string;
-}) => {
+import { SVGData } from '../types';
+
+export const eliteTheme = (data: SVGData) => {
     const isOffline = data.status === 'OFFLINE';
     const progress = data.progress || 0;
     const progressBarWidth = 485 * (progress / 100);
+    const vibrant = data.palette?.vibrant || '#ffffff';
+    const darkVibrant = data.palette?.darkVibrant || '#121212';
+    const muted = data.palette?.muted || '#e0e0e0';
 
     if (isOffline) {
         return `
@@ -51,12 +48,16 @@ export const eliteTheme = (data: {
                 <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
             </filter>
             <linearGradient id="overlay-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:rgba(0,0,0,0.4);stop-opacity:1" />
-                <stop offset="100%" style="stop-color:rgba(0,0,0,0.85);stop-opacity:1" />
+                <stop offset="0%" style="stop-color:${darkVibrant};stop-opacity:0.4" />
+                <stop offset="100%" style="stop-color:${darkVibrant};stop-opacity:0.85" />
             </linearGradient>
             <clipPath id="rounded-card">
                 <rect width="720" height="180" rx="20"/>
             </clipPath>
+            <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:${vibrant};stop-opacity:0.8" />
+                <stop offset="100%" style="stop-color:${vibrant};stop-opacity:1" />
+            </linearGradient>
         </defs>
         <style>
             @keyframes pan-bg {
@@ -67,11 +68,11 @@ export const eliteTheme = (data: {
             .main { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; }
             .bg-image { animation: pan-bg 20s infinite ease-in-out; }
             .song { font-size: 30px; font-weight: 800; fill: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); letter-spacing: -0.5px; }
-            .artist { font-size: 18px; fill: #e0e0e0; font-weight: 500; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+            .artist { font-size: 18px; fill: ${muted}; font-weight: 500; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
             .time { font-size: 14px; fill: #d1d1d1; font-weight: 500; }
             .progress-bg { fill: rgba(255, 255, 255, 0.15); }
-            .progress-fg { fill: url(#progress-gradient); filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
-            .progress-knob { fill: #fff; filter: drop-shadow(0 0 10px rgba(255,255,255,0.8)); }
+            .progress-fg { fill: url(#progress-gradient); filter: drop-shadow(0 0 8px ${vibrant}66); }
+            .progress-knob { fill: #fff; filter: drop-shadow(0 0 10px ${vibrant}); }
         </style>
 
         <g clip-path="url(#rounded-card)">
@@ -79,13 +80,6 @@ export const eliteTheme = (data: {
                 <image xlink:href="${data.albumArt}" href="${data.albumArt}" width="720" height="180" preserveAspectRatio="xMidYMid slice" filter="url(#blur-effect)" />
             </g>
             <rect width="720" height="180" fill="url(#overlay-gradient)" />
-
-            <defs>
-                <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.8" />
-                    <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
-                </linearGradient>
-            </defs>
 
             ${YTMusicLogo(345, 15)}
 

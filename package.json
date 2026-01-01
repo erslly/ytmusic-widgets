@@ -15,6 +15,7 @@
         "@types/node": "^20.10.4",
         "axios": "^1.6.2",
         "fastify": "^5.6.2",
+        "node-vibrant": "^3.1.6",
         "ts-node": "^10.9.2",
         "typescript": "^5.3.3"
     }

@@ -9,6 +9,7 @@ import { APIError, ErrorType } from './types';
 import { CONFIG } from './config';
 import { getBase64Image } from './utils/image';
 import { formatTime } from './utils/format';
+import { getDominantColors } from './utils/colors';
 
 const fastify = Fastify({
     logger: true,
@@ -87,7 +88,9 @@ fastify.get('/widgets/:id?', async (request, reply) => {
                 ? `https://cdn.discordapp.com/app-assets/${activity.application_id}/${activity.assets.large_image}.png`
                 : CONFIG.DEFAULT_ALBUM_ART));
 
+        const rawAlbumArt = albumArt;
         albumArt = await getBase64Image(albumArt);
+        const palette = await getDominantColors(rawAlbumArt);
 
         const svgContent = renderSVG(theme, {
             track: activity.details || 'Unknown Track',
@@ -96,7 +99,8 @@ fastify.get('/widgets/:id?', async (request, reply) => {
             status: 'LISTENING',
             progress,
             startTime: formatTime(elapsed),
-            endTime: formatTime(total)
+            endTime: formatTime(total),
+            palette
         });
 
         return reply.status(200).send(svgContent.replace('</svg>', `<!-- ${Date.now()} --></svg>`));

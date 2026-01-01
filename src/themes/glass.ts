@@ -7,18 +7,15 @@ const YTMusicLogo = (x: number, y: number) => `
     </g>
 </svg>`;
 
-export const glassTheme = (data: {
-    track: string;
-    artist: string;
-    albumArt: string;
-    status: string;
-    progress?: number;
-    startTime?: string;
-    endTime?: string;
-}) => {
+import { SVGData } from '../types';
+
+export const glassTheme = (data: SVGData) => {
     const isOffline = data.status === 'OFFLINE';
     const progress = data.progress || 0;
     const progressBarWidth = 295 * (progress / 100);
+    const vibrant = data.palette?.vibrant || '#FF0000';
+    const darkVibrant = data.palette?.darkVibrant || '#1a1a1a';
+    const lightVibrant = data.palette?.lightVibrant || '#ffffff';
 
     if (isOffline) {
         return `
@@ -41,8 +38,8 @@ export const glassTheme = (data: {
                 <feGaussianBlur in="SourceGraphic" stdDeviation="15" />
             </filter>
             <linearGradient id="glass-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:white;stop-opacity:0.2" />
-                <stop offset="100%" style="stop-color:white;stop-opacity:0.05" />
+                <stop offset="0%" style="stop-color:${vibrant};stop-opacity:0.2" />
+                <stop offset="100%" style="stop-color:${vibrant};stop-opacity:0.05" />
             </linearGradient>
         </defs>
 
@@ -53,12 +50,12 @@ export const glassTheme = (data: {
             .time { font-size: 12px; fill: rgba(255,255,255,0.5); font-weight: 500; }
             .glass-panel { fill: url(#glass-grad); stroke: rgba(255,255,255,0.2); stroke-width: 1; }
             .progress-bg { fill: rgba(255, 255, 255, 0.1); }
-            .progress-fg { fill: #fff; filter: drop-shadow(0 0 3px rgba(255,255,255,0.5)); }
+            .progress-fg { fill: ${vibrant}; filter: drop-shadow(0 0 3px ${vibrant}); }
         </style>
 
         <g clip-path="url(#rect-clip)">
             <image href="${data.albumArt}" x="-50" y="-50" width="700" height="260" preserveAspectRatio="xMidYMid slice" filter="url(#glass-blur)" opacity="0.6"/>
-            <rect width="600" height="160" fill="rgba(0,0,0,0.4)"/>
+            <rect width="600" height="160" fill="${darkVibrant}" opacity="0.4"/>
             <rect x="15" y="15" width="570" height="130" rx="25" class="glass-panel"/>
 
             <g class="content">

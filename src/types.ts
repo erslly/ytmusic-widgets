@@ -58,3 +58,23 @@ export interface PresenceActivity {
     };
     application_id?: string;
 }
+
+export interface ColorPalette {
+    vibrant?: string;
+    muted?: string;
+    darkVibrant?: string;
+    darkMuted?: string;
+    lightVibrant?: string;
+    lightMuted?: string;
+}
+
+export interface SVGData {
+    track: string;
+    artist: string;
+    albumArt: string;
+    status: string;
+    progress?: number;
+    startTime?: string;
+    endTime?: string;
+    palette?: ColorPalette;
+}

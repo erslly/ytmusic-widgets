@@ -7,18 +7,15 @@ const YTMusicLogo = (x: number, y: number) => `
     </g>
 </svg>`;
 
-export const classicTheme = (data: {
-    track: string;
-    artist: string;
-    albumArt: string;
-    status: string;
-    progress?: number;
-    startTime?: string;
-    endTime?: string;
-}) => {
+import { SVGData } from '../types';
+
+export const classicTheme = (data: SVGData) => {
     const isOffline = data.status === 'OFFLINE';
     const progress = data.progress || 0;
     const progressBarWidth = 205 * (progress / 100);
+    const vibrant = data.palette?.vibrant || '#FF0000';
+    const darkVibrant = data.palette?.darkVibrant || '#8B0000';
+    const muted = data.palette?.muted || '#121212';
 
     if (isOffline) {
         return `
@@ -26,7 +23,7 @@ export const classicTheme = (data: {
         <style>
             .message { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; font-size: 22px; font-weight: 500; fill: #fff; }
         </style>
-        <rect x="10" y="10" width="500" height="160" rx="20" fill="#121212" stroke="#FF0000" stroke-width="4"/>
+        <rect x="10" y="10" width="500" height="160" rx="20" fill="#121212" stroke="${vibrant}" stroke-width="4"/>
         ${YTMusicLogo(30, 30)}
         <text x="75" y="95" class="message">I'm currently offline</text>
     </svg>`;
@@ -36,8 +33,8 @@ export const classicTheme = (data: {
     <svg width="520" height="180" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
         <defs>
             <linearGradient id="border-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#FF0000;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#8B0000;stop-opacity:1" />
+                <stop offset="0%" style="stop-color:${vibrant};stop-opacity:1" />
+                <stop offset="100%" style="stop-color:${darkVibrant};stop-opacity:1" />
             </linearGradient>
             <filter id="inner-shadow">
                 <feOffset dx="0" dy="2"/>
@@ -50,6 +47,10 @@ export const classicTheme = (data: {
             <clipPath id="rounded-image">
                 <rect x="30" y="30" width="120" height="120" rx="15"/>
             </clipPath>
+            <linearGradient id="classic-progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:${vibrant};stop-opacity:0.8" />
+                <stop offset="100%" style="stop-color:${vibrant};stop-opacity:1" />
+            </linearGradient>
         </defs> 
         <style>
             .song, .artist { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; }
@@ -59,7 +60,7 @@ export const classicTheme = (data: {
             .card-bg { fill: #0f0f0f; stroke: url(#border-gradient); stroke-width: 3; }
             .progress-bg { fill: rgba(255, 255, 255, 0.1); }
             .progress-fg { fill: url(#classic-progress-gradient); }
-            .progress-knob { fill: #FF0000; filter: drop-shadow(0 0 5px rgba(255,0,0,0.6)); }
+            .progress-knob { fill: ${vibrant}; filter: drop-shadow(0 0 5px ${vibrant}); }
         </style>
 
         <rect x="10" y="10" width="500" height="160" rx="25" class="card-bg" filter="url(#inner-shadow)"/>
@@ -68,13 +69,6 @@ export const classicTheme = (data: {
             <rect x="115" y="115" width="35" height="35" rx="17.5" fill="#0f0f0f"/>
             ${YTMusicLogo(117.5, 117.5)}
         </g>
-
-        <defs>
-            <linearGradient id="classic-progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#FF0000;stop-opacity:0.8" />
-                <stop offset="100%" style="stop-color:#FF0000;stop-opacity:1" />
-            </linearGradient>
-        </defs>
 
         <text x="170" y="65" class="song">${data.track.length > 25 ? data.track.slice(0, 23) + '...' : data.track}</text>
         <text x="170" y="95" class="artist">${data.artist}</text>

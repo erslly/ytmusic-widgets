@@ -1,16 +1,9 @@
 import { classicTheme } from '../themes/classic';
 import { eliteTheme } from '../themes/elite';
 import { glassTheme } from '../themes/glass';
+import { SVGData } from '../types';
 
-export const renderSVG = (themeName: string, data: {
-    track: string;
-    artist: string;
-    albumArt: string;
-    status: string;
-    progress?: number;
-    startTime?: string;
-    endTime?: string;
-}) => {
+export const renderSVG = (themeName: string, data: SVGData) => {
     switch (themeName?.toLowerCase()) {
         case 'elite':
             return eliteTheme(data);
